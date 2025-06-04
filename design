@@ -1,0 +1,94 @@
+// Wallace Tree Multiplier - 4x4 Version
+module wallace_multiplier(a, b, product);
+    input [3:0] a, b;
+    output [7:0] product;  // 8-bit final product
+
+    wire [15:0] pp; // Flattened 2D array (4x4 = 16 bits)
+    wire [15:0] d;
+
+    wire s1, c1, s2, c2, s3, c3, s4, c4, s5, c5, s6, c6;
+    wire s7, c7, s8, c8, s9, c9, s10, c10, s11, c11, s12, c12;
+    wire temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8;
+
+    // Generate partial products: pp[i*4 + j] = a[i] & b[j]
+    genvar i, j;
+    generate
+        for (i = 0; i < 4; i = i + 1) begin: loop_i
+            for (j = 0; j < 4; j = j + 1) begin: loop_j
+                assign pp[i*4 + j] = a[i] & b[j];
+            end
+        end
+    endgenerate
+
+    // Flatten to d[]
+    assign d[0]  = pp[0];
+    assign d[1]  = pp[1];
+    assign d[2]  = pp[2];
+    assign d[3]  = pp[3];
+    assign d[4]  = pp[4];
+    assign d[5]  = pp[5];
+    assign d[6]  = pp[6];
+    assign d[7]  = pp[7];
+    assign d[8]  = pp[8];
+    assign d[9]  = pp[9];
+    assign d[10] = pp[10];
+    assign d[11] = pp[11];
+    assign d[12] = pp[12];
+    assign d[13] = pp[13];
+    assign d[14] = pp[14];
+    assign d[15] = pp[15];
+
+    // Wallace tree reduction
+    xor (s1, d[9], d[12]);
+    and (c1, d[9], d[12]);
+
+    xor (s2, d[10], d[13]);
+    and (c2, d[10], d[13]);
+
+    xor (s3, d[5], d[8]);
+    and (c3, d[5], d[8]);
+
+    xor (temp1, s1, d[3]);
+    xor (s4, temp1, d[6]);
+    assign c4 = (s1 & d[3]) | (d[3] & d[6]) | (s1 & d[6]);
+
+    xor (temp2, c1, s2);
+    xor (s5, temp2, d[7]);
+    assign c5 = (c1 & s2) | (s2 & d[7]) | (c1 & d[7]);
+
+    xor (temp3, c2, d[11]);
+    xor (s6, temp3, d[14]);
+    assign c6 = (c2 & d[11]) | (d[11] & d[14]) | (c2 & d[14]);
+
+    xor (s7, d[1], d[4]);
+    and (c7, d[1], d[4]);
+
+    xor (temp4, s3, d[2]);
+    xor (s8, temp4, c7);
+    assign c8 = (s3 & d[2]) | (d[2] & c7) | (s3 & c7);
+
+    xor (temp5, c3, s4);
+    xor (s9, temp5, c8);
+    assign c9 = (c3 & s4) | (s4 & c8) | (c8 & c3);
+
+    xor (temp6, c4, s5);
+    xor (s10, temp6, c9);
+    assign c10 = (c4 & s5) | (s5 & c9) | (c9 & c4);
+
+    xor (temp7, c5, s6);
+    xor (s11, temp7, c10);
+    assign c11 = (c5 & s6) | (s6 & c10) | (c10 & c5);
+
+    xor (temp8, c6, d[15]);
+    xor (s12, temp8, c11);
+    assign c12 = (c6 & d[15]) | (d[15] & c11) | (c11 & c6);
+
+    // Final sum and carry vectors (align bits)
+    wire [7:0] sum, carry;
+    assign sum   = {1'b0, s12, s11, s10, s9, s8, s7, d[0]};
+    assign carry = {c12, c11, c10, c9, c8, c7, 1'b0, 1'b0};  // Left-shifted by 1
+
+    // Final carry-propagate adder (CPA)
+    assign product = sum + carry;
+
+endmodule

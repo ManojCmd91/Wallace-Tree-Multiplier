@@ -1,7 +1,7 @@
 
 ### 🚀 Wallace Tree Multiplier (4x4) – Verilog Implementation
 
-This project implements a **4x4 Wallace Tree Multiplier** in Verilog, designed using a combination of **structural** and **dataflow modeling** techniques.
+This project implements a **4x4 Wallace Tree Multiplier** in **Verilog**, designed using a combination of **structural** and **dataflow modeling** techniques.
 
 The Wallace Tree algorithm is a fast and efficient method for hardware multiplication. It reduces the number of partial products through multiple stages of full and half adders before the final addition stage.
 
